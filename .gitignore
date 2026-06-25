@@ -1,0 +1,26 @@
+# === Build artifacts ===
+AnyPortal.exe
+*.exe
+!core/**/*.exe
+
+# === Runtime state (never commit) ===
+anyportal.log
+.tsnet-anyportal-host/
+.tsnet-anyportal-client/
+
+# === User secrets (never commit) ===
+config.json
+
+# === Bundled third-party binaries ===
+core/
+
+# === Go module cache ===
+vendor/
+
+# === IDE / OS ===
+.vscode/
+.idea/
+*.swp
+*~
+Thumbs.db
+Desktop.ini

@@ -1,0 +1,39 @@
+name: Build AnyPortal
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.25.x'
+        cache: true
+
+    - name: Install dependencies
+      run: go mod tidy
+
+    - name: Build AnyPortal-CLI (Headless)
+      run: go build -ldflags "-s -w" -o AnyPortal-CLI.exe .
+
+    - name: Build AnyPortal-Tray (GUI System Tray)
+      run: go build -tags tray -ldflags "-H windowsgui -s -w" -o AnyPortal-Tray.exe .
+
+    - name: Upload Build Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: AnyPortal-Windows-Builds
+        path: |
+          AnyPortal-CLI.exe
+          AnyPortal-Tray.exe
+          config.json.example

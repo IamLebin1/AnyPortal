@@ -1,0 +1,5 @@
+{
+  "role": "server",
+  "auth_key": "tskey-auth-REPLACE_ME",
+  "target_ip": ""
+}
