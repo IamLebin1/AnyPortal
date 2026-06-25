@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/gogpu/systray"
+	"github.com/getlantern/systray"
 )
 
 // RunSystemTrayLoop initializes and runs the systray GUI loop.
@@ -16,7 +16,7 @@ import (
 func RunSystemTrayLoop(meshIP string, onQuit func()) {
 	printStatus("Running in GUI Tray Mode")
 
-	systray.Register(func() {
+	onReady := func() {
 		// Initialize the tray icon and tooltips
 		systray.SetTitle("AnyPortal")
 		systray.SetTooltip("AnyPortal Zero-Config Remote Streaming Portal")
@@ -27,24 +27,32 @@ func RunSystemTrayLoop(meshIP string, onQuit func()) {
 		mLog := systray.AddMenuItem("📝 Open Log File", "Inspect operational diagnostics logs")
 		mQuit := systray.AddMenuItem("⏹ Quit AnyPortal", "Safely unmount environment processes")
 
-		for {
-			select {
-			case <-mIP.ClickedCh:
-				// Execute cross-platform clip utility binding or syscall to copy meshIP
-				copyToClipboard(meshIP)
-			case <-mAdmin.ClickedCh:
-				openBrowser("https://127.0.0.1:47990")
-			case <-mLog.ClickedCh:
-				openLogFile("anyportal.log")
-			case <-mQuit.ClickedCh:
-				onQuit()
-				systray.Quit()
-				return
+		// Listen to menu clicks in a separate goroutine so we don't block the tray's event loop
+		go func() {
+			for {
+				select {
+				case <-mIP.ClickedCh:
+					// Execute cross-platform clip utility binding or syscall to copy meshIP
+					copyToClipboard(meshIP)
+				case <-mAdmin.ClickedCh:
+					openBrowser("https://127.0.0.1:47990")
+				case <-mLog.ClickedCh:
+					openLogFile("anyportal.log")
+				case <-mQuit.ClickedCh:
+					onQuit()
+					systray.Quit()
+					return
+				}
 			}
-		}
-	}, func() {
+		}()
+	}
+
+	onExit := func() {
 		// Clean destruction hook callback closure
-	})
+	}
+
+	// Run starts the tray loop and blocks the thread until systray.Quit() is called.
+	systray.Run(onReady, onExit)
 }
 
 func copyToClipboard(text string) {
